@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ps" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ahsan System Login</title>
+<style>
+body{background:#101827;color:white;font-family:Arial;display:grid;place-items:center;min-height:90vh}
+main{background:#1e293b;padding:25px;border-radius:15px;width:80%;max-width:350px}
+input,button{box-sizing:border-box;width:100%;padding:13px;margin-top:12px;border:0;border-radius:8px}
+button{background:#0284c7;color:white}
+</style>
+</head>
+<body>
+<main>
+<h2>⚡ Ahsan System</h2>
+<p>د اډمین پاسورډ ولیکه</p>
+<form id="f">
+<input id="p" type="password" placeholder="پاسورډ" required>
+<button type="submit">ننوتل</button>
+</form>
+<p id="m"></p>
+</main>
+<script>
+document.getElementById('f').onsubmit=async e=>{
+e.preventDefault();
+try{
+const r=await fetch('/api/login',{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({password:document.getElementById('p').value})
+});
+const d=await r.json();
+if(d.success) location.href='/admin';
+else document.getElementById('m').textContent=d.error||'پاسورډ ناسم دی';
+}catch(e){document.getElementById('m').textContent='د سرور ستونزه ده';}
+};
+</script>
+</body>
+</html>

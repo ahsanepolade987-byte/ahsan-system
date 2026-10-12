@@ -1,0 +1,11 @@
+.env
+.env.*
+!.env.example
+node_modules/
+server.log
+*.log
+.DS_Store
+backups/
+*backup*
+*.bak*
+*.before-login

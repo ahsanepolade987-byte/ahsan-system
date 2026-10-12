@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ps" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ahsan System Admin</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#0b1120;color:#e5e7eb;font-family:Arial,sans-serif}
+header{padding:22px 16px;background:#111c32;border-bottom:1px solid #263650}
+h1{margin:0;color:#38bdf8;font-size:25px}
+header p{color:#9ca3af;margin-bottom:0}
+main{max-width:800px;margin:auto;padding:16px}
+.box{background:#111c32;padding:16px;border-radius:14px;margin-bottom:16px;border:1px solid #263650}
+button{background:#0284c7;color:white;border:0;border-radius:8px;padding:11px 15px;cursor:pointer;font-size:15px}
+button:active{opacity:.7}
+input,textarea{width:100%;padding:12px;margin:7px 0 12px;background:#0b1120;border:1px solid #334155;border-radius:8px;color:white;font-size:15px}
+label{display:block;color:#cbd5e1}
+#commands{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.cmd{background:#17243b;border:1px solid #334155;border-radius:10px;padding:12px;overflow-wrap:anywhere}
+.cmd strong{color:#38bdf8;display:block;margin-bottom:7px}
+.cmd small{display:block;color:#cbd5e1;margin-bottom:10px}
+#output{white-space:pre-wrap;overflow-wrap:anywhere;direction:ltr;text-align:left;background:#050a13;padding:13px;border-radius:9px;min-height:70px}
+.status{color:#4ade80}
+</style>
+</head>
+<body>
+<header>
+<h1>⚡ Ahsan System</h1>
+<p>د سیستم د اډمین کنټرول پینل</p>
+</header>
+<main>
+<div class="box">
+<h3>📊 د سیستم حالت</h3>
+<p id="status">د سیستم حالت معلومېږي...</p>
+<button onclick="loadCommands()">🔄 تازه کول</button>
+</div>
+
+<div class="box">
+<h3>📋 کمانډونه</h3>
+<div id="commands">کمانډونه لوډ کېږي...</div>
+</div>
+
+<div class="box">
+<h3>▶️ کمانډ اجرا کړه</h3>
+<label>د کمانډ نوم</label>
+<input id="name" placeholder="مثال: ping">
+<label>پارامترونه (JSON)</label>
+<textarea id="args" rows="3" placeholder='{"id":"123","target":"test"}'>{}</textarea>
+<button onclick="runCommand()">اجرا کول</button>
+<h3>پایله</h3>
+<div id="output">د کمانډ پایله دلته ښکاري.</div>
+</div>
+</main>
+<script>
+async function loadCommands(){
+ const status=document.getElementById('status');
+ const box=document.getElementById('commands');
+ status.textContent='د سیستم حالت معلومېږي...';
+ try{
+  const r=await fetch('/api/commands');
+  const d=await r.json();
+  if(!r.ok||!d.success)throw Error('API ځواب سم نه دی');
+  status.innerHTML='<span class="status">● سیستم فعال دی — '+d.commands.length+' کمانډونه</span>';
+  box.innerHTML='';
+  d.commands.forEach(c=>{
+   const el=document.createElement('div');
+   el.className='cmd';
+   const title=document.createElement('strong');
+   title.textContent=c.name;
+   const desc=document.createElement('small');
+   desc.textContent=c.description;
+   const btn=document.createElement('button');
+   btn.textContent='اجرا';
+   btn.onclick=()=>{
+    document.getElementById('name').value=c.name;
+    document.getElementById('args').value='{}';
+    document.getElementById('name').scrollIntoView({behavior:'smooth'});
+   };
+   el.append(title,desc,btn);
+   box.appendChild(el);
+  });
+ }catch(e){status.textContent='خطا: '+e.message;box.textContent='سرور یا API ته لاسرسی نشته.'}
+}
+async function runCommand(){
+ const name=document.getElementById('name').value.trim();
+ const out=document.getElementById('output');
+ if(!name){out.textContent='لومړی د کمانډ نوم ولیکه.';return}
+ try{
+  const args=JSON.parse(document.getElementById('args').value||'{}');
+  out.textContent='کمانډ اجرا کېږي...';
+  const r=await fetch('/api/commands/'+encodeURIComponent(name),{
+   method:'POST',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify(args)
+  });
+  const d=await r.json();
+  out.textContent=JSON.stringify(d,null,2);
+ }catch(e){out.textContent='خطا: '+e.message}
+}
+loadCommands();
+</script>
+</body>
+</html>
